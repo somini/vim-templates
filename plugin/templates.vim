@@ -61,10 +61,28 @@ function! s:loadtemplate( filetype )
 		call cursor( y, x )
 	endif
 	set nomodified
+	let b:templates_current_seq = s:currentfilehash()
+endfunction
+
+function! s:deleteoldtemplate()
+	%delete _ " Delete the file's contents
+	set nomodified
+endf
+
+function! s:currentfilehash()
+	return undotree().seq_cur
 endfunction
 
 function! s:setuptemplate()
+	if !exists('b:templates_current_seq')
+		let b:templates_current_seq = -1
+	endif
 	let l:filetype = &filetype
+	if !&modified && s:currentfilehash() == b:templates_current_seq
+		" The file hasn't changed since the last template
+		" Override the old template
+		call s:deleteoldtemplate()
+	endif
 	" Check if the buffer is empty and brand-new
 	if line('$') == 1 && getline(1) ==# '' && !&modified
 		" Check if it's a new file
