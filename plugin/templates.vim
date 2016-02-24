@@ -37,6 +37,7 @@ augroup END
 function! s:loadtemplate( filetype )
 	let templates = filter( split( globpath( &runtimepath, 'templates/' . a:filetype ), "\n" ), 'filereadable(v:val)' )
 	if empty( templates ) | return 0 | endif
+	%delete _
 	silent execute 1 'read' templates[0]
 	1 delete _
 	if search( 'cursor:', 'W' )
@@ -54,7 +55,10 @@ function! s:loadtemplate( filetype )
 endfunction
 
 function! s:isnewfile()
-	return ( has('byte_offset') ? line2byte(1) == -1 : getline(1,2) == [''] )
+	if !exists('b:ft_previous')
+		let b:ft_previous = &ft
+	endif
+	return (( has('byte_offset') ? line2byte(1) == -1 : getline(1,2) == [''] ) || stridx(&ft, b:ft_previous) != -1)
 		\ && ! &modified && ( g:templates_empty_files || ! filereadable(bufname('')) )
 endfunction
 
